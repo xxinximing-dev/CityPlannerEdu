@@ -12,7 +12,7 @@ export enum Phase {
   DISCUSS = 'DISCUSS'
 }
 
-export type ViewState = 'GAME' | 'LOGS' | 'VOTE' | 'CHILD_FEEDBACK' | 'TEACHER_REPORT';
+export type ViewState = 'HOME' | 'GAME' | 'LOGS' | 'VOTE' | 'CHILD_FEEDBACK' | 'TEACHER_REPORT' | 'REFLECTION_SURVEY';
 
 export interface VoteData {
   id: string;
@@ -52,6 +52,10 @@ export interface Building {
   pollutionEffect: number;
   happinessEffect: number;
   description: string;
+  // SEL Metadata
+  costLevel: 1 | 2 | 3;
+  impactLevel: 1 | 2 | 3;
+  crossRoleEffect: boolean;
 }
 
 export interface MapCell {
@@ -61,6 +65,36 @@ export interface MapCell {
   isRoad: boolean;
   status: 'normal' | 'no-power' | 'no-road';
   ownerId: Role | null;
+  confirmed: boolean; // SEL: marked as confirmed object
+}
+
+export type ActionType = 'place' | 'move' | 'delete' | 'replace' | 'upgrade';
+
+export interface GameAction {
+  type: ActionType;
+  actorId: Role;
+  buildingId: string | null;
+  targetCell: { x: number, y: number };
+  previousBuildingId?: string | null;
+  prevOwnerId?: Role | null;
+}
+
+export interface KeyCommitRecord {
+  actorId: Role;
+  timestamp: number;
+  action: GameAction;
+}
+
+export interface NegotiationCard {
+  reason: string;
+  concern: string;
+  compromise: string;
+}
+
+export interface SELStats {
+  negotiationCount: number;
+  handoverCount: number;
+  unresolvedConflictCount: number;
 }
 
 export interface GameState {
@@ -80,7 +114,16 @@ export interface GameState {
   logs: LogEvent[];
   startTime: number;
   sessionId: string;
+  groupId: string;
+  customPlayerId: string; // The specific P1, P2 name
   currentVote: VoteData | null;
+}
+
+export interface SessionData {
+  sessionId: string;
+  groupId: string;
+  logs: LogEvent[];
+  timestamp: number; // When the session was archived
 }
 
 export interface Task {

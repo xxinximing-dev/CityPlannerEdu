@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface TutorialStep {
@@ -10,32 +9,32 @@ interface TutorialStep {
 
 const steps: TutorialStep[] = [
   {
-    title: "欢迎来到 EcoCity!",
-    content: "这是一个协作建设绿色城市的教育游戏。你将扮演不同专家角色，与他人共同打造理想城市！",
+    title: "欢迎来到 EcoCity！",
+    content: "这是一个关于建设绿色城市的教育协作游戏。你将扮演不同的专家角色，共同建设理想的未来城市！",
     icon: "🏙️",
     color: "bg-indigo-600"
   },
   {
     title: "选择你的角色",
-    content: "点击中间的图标可以切换角色。每个角色（环境、规划、能源、经济）拥有专属的建筑工具包。",
+    content: "点击顶部图标切换角色。每个角色（环境专家、规划师、能源专家、经济学家）都有独特的建筑工具包。",
     icon: "📐",
     color: "bg-blue-500"
   },
   {
-    title: "开始建设",
-    content: "在左侧菜单选择建筑，然后在地图上点击空地放置。记得先修路，大部分建筑需要连接道路才能运作哦！",
+    title: "开始建造",
+    content: "从左侧面板选择建筑，然后点击地图进行放置。记得先修路，大多数建筑都需要道路连接！",
     icon: "🛣️",
     color: "bg-emerald-500"
   },
   {
-    title: "监控城市指标",
-    content: "顶部面板显示金币、人口、电力和污染。当电力不足时指标会闪烁变红，记得及时增加发电设施！",
+    title: "监控各项指标",
+    content: "顶部面板显示金币、人口、能量和污染。当能量不足时，指示器会闪红。记得建造更多发电站！",
     icon: "⚡",
     color: "bg-yellow-500"
   },
   {
     title: "协作与决策",
-    content: "遇到意见分歧？点击底部的“投票”按钮发起决策。右侧的“日志”可以导出你的所有行为数据。",
+    content: "有分歧？点击底部的“投票”开始决策过程。点击右侧的“日志”可以查看所有操作。",
     icon: "🗳️",
     color: "bg-purple-600"
   }
@@ -93,7 +92,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onClose }) => 
               }}
               className={`flex-1 py-4 rounded-2xl font-black text-white shadow-xl transition-all active:scale-95 ${step.color} hover:brightness-110`}
             >
-              {currentStep === steps.length - 1 ? "开始游戏!" : "下一步"}
+              {currentStep === steps.length - 1 ? "开始游戏！" : "下一步"}
             </button>
           </div>
           

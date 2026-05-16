@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { GameState, Role, VoteData } from '../types';
 
@@ -7,23 +6,24 @@ interface VotePageProps {
   onBack: () => void;
   onSubmitVote: (optionId: string, reason?: string) => void;
   onInitiateVote: (question: string, description: string) => void;
+  onCloseVote: () => void; // New prop to clear the vote state
 }
 
-export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote, onInitiateVote }) => {
-  const [isInitiating, setIsInitiating] = useState(!state.currentVote);
+export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote, onInitiateVote, onCloseVote }) => {
   const [question, setQuestion] = useState('');
   const [description, setDescription] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [showResults, setShowResults] = useState(false);
 
-  if (isInitiating) {
+  // 1. 如果没有当前投票，显示发起界面
+  if (!state.currentVote) {
     return (
       <div className="fixed inset-0 z-[200] bg-indigo-900/40 backdrop-blur-md flex items-center justify-center p-8 animate-in zoom-in duration-300">
         <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col border-8 border-indigo-200">
           <header className="bg-indigo-600 p-6 text-white text-center">
             <h2 className="text-3xl font-black">发起自定义投票</h2>
-            <p className="opacity-80 text-sm">解决分歧，由大家共同决定！</p>
+            <p className="opacity-80 text-sm">一起协作解决分歧！</p>
           </header>
           
           <div className="p-8 space-y-6">
@@ -33,17 +33,17 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
                 type="text" 
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="例如：是否支持在该区域建设公园？" 
+                placeholder="例如：我们应该在这里建公园吗？" 
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-indigo-400 transition-all font-bold text-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-400 uppercase mb-2">详情描述</label>
+              <label className="block text-sm font-bold text-gray-400 uppercase mb-2">详细说明</label>
               <textarea 
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="说明分歧点：玩家 A 提议建设公园，玩家 B 提议建设住宅..." 
+                placeholder="对分歧进行具体描述，例如：玩家 A 想建公园，玩家 B 想建住宅..." 
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-indigo-400 transition-all font-medium"
               ></textarea>
             </div>
@@ -51,8 +51,8 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
             <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-start gap-3">
               <span className="text-2xl">💡</span>
               <p className="text-xs text-blue-800 leading-relaxed font-bold">
-                发起投票后，系统将自动生成“赞成”与“反对”两个基本选项。
-                完成后，所有在线玩家都将看到并参与决策。
+                投票发起后，系统将自动生成“赞成”和“反对”选项。
+                所有在线玩家都可以参与投票。
               </p>
             </div>
           </div>
@@ -70,7 +70,7 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
               }}
               className="flex-1 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all"
             >
-              确认发起
+              开始投票
             </button>
           </footer>
         </div>
@@ -78,9 +78,12 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
     );
   }
 
-  const voteData = state.currentVote!;
+  const voteData = state.currentVote;
   const hasVoted = !!voteData.results[state.currentRole];
   const votesCount = Object.values(voteData.results).length;
+  // 如果 4 人投完或状态为 completed，强制显示结果
+  const isVoteCompleted = voteData.status === 'completed' || votesCount >= 4;
+  const shouldShowResults = showResults || isVoteCompleted;
 
   return (
     <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in fade-in duration-300 overflow-hidden">
@@ -88,14 +91,15 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
       <header className="h-[15%] bg-indigo-600 text-white flex items-center px-10 relative">
         <div className="flex-1">
           <h1 className="text-3xl font-black flex items-center gap-3">
-            <span>🗳️</span> 正在进行投票
+            <span>🗳️</span> 
+            {isVoteCompleted ? "投票已完成" : "正在投票中"}
           </h1>
           <p className="text-sm opacity-80 font-bold uppercase tracking-widest mt-1">
-            由 {voteData.initiator} 发起 • SESSION: {state.sessionId}
+            发起人: {voteData.initiator} • 会话: {state.sessionId}
           </p>
         </div>
         <button onClick={onBack} className="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-full font-bold border border-white/30">
-          退出视图
+          退出查看
         </button>
       </header>
 
@@ -107,7 +111,7 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
           </h2>
           <div className="bg-white/60 backdrop-blur-sm p-6 rounded-3xl border border-indigo-200 shadow-sm">
             <p className="text-indigo-700 font-medium leading-relaxed">
-              {voteData.description || '暂无详细描述信息。'}
+              {voteData.description || '暂无详细描述。'}
             </p>
           </div>
         </div>
@@ -115,7 +119,7 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
 
       {/* 3. 投票选项区 (30%) */}
       <section className="h-[30%] flex items-center justify-center p-8 bg-white gap-8">
-        {!showResults ? (
+        {!shouldShowResults ? (
           <div className="w-full max-w-4xl flex flex-col gap-8">
             <div className="flex gap-6">
               {voteData.options.map(opt => (
@@ -128,19 +132,19 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
                       : 'bg-gray-50 border-gray-100 text-gray-400 hover:border-indigo-300'}`}
                 >
                   <span className="text-4xl">{opt.id === 'plan_A' ? '👍' : '👎'}</span>
-                  {opt.label}
+                  {opt.id === 'plan_A' ? '赞成' : '反对'}
                 </button>
               ))}
             </div>
             
             {selectedOption === 'plan_B' && (
               <div className="animate-in slide-in-from-top-4">
-                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 ml-4">请输入不同意的理由 (可选)</label>
+                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 ml-4">反对原因（选填）</label>
                  <input 
                   type="text" 
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="例如：我觉得这里的交通还不够发达..." 
+                  placeholder="例如：这里交通不便..." 
                   className="w-full px-8 py-4 bg-pink-50 border-2 border-pink-100 rounded-full outline-none focus:ring-4 focus:ring-pink-200 transition-all font-bold"
                  />
               </div>
@@ -154,7 +158,7 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
               return (
                 <div key={opt.id} className="relative bg-gray-50 rounded-3xl p-8 border-2 border-gray-100">
                   <div className="flex justify-between items-end mb-4">
-                    <span className="font-black text-xl text-gray-800">{opt.label}</span>
+                    <span className="font-black text-xl text-gray-800">{opt.id === 'plan_A' ? '赞成' : '反对'}</span>
                     <span className="font-mono font-black text-4xl text-indigo-600">{percent.toFixed(0)}%</span>
                   </div>
                   <div className="h-4 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -163,7 +167,7 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
                       style={{ width: `${percent}%` }}
                     />
                   </div>
-                  <p className="mt-4 text-xs font-bold text-gray-400">{count} 票支持</p>
+                  <p className="mt-4 text-xs font-bold text-gray-400">{count} 票</p>
                 </div>
               );
             })}
@@ -173,22 +177,43 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
 
       {/* 4. 操作区 (20%) */}
       <footer className="h-[20%] bg-gray-50 border-t-2 border-gray-100 flex items-center justify-center gap-6">
-        {hasVoted || showResults ? (
-          <div className="flex gap-4">
+        {/* 情景 A: 投票已完成 (4人已投) -> 显示归档/新投票按钮 */}
+        {isVoteCompleted ? (
+           <div className="flex gap-4">
              <button 
-              onClick={() => setShowResults(!showResults)}
-              className="bg-white border-4 border-indigo-100 text-indigo-600 px-12 py-5 rounded-2xl font-black text-xl hover:bg-indigo-50 transition-all shadow-lg"
-            >
-              {showResults ? '返回选项' : '查看实时结果'}
-            </button>
-            <button 
+              onClick={onCloseVote}
+              className="bg-emerald-600 text-white px-12 py-5 rounded-2xl font-black text-xl hover:bg-emerald-700 transition-all shadow-lg flex items-center gap-2"
+             >
+               <span>✨</span> 存档并开始新投票
+             </button>
+             <button 
               onClick={onBack}
-              className="bg-gray-800 text-white px-12 py-5 rounded-2xl font-black text-xl hover:bg-black transition-all shadow-lg"
-            >
-              返回建造界面
-            </button>
+              className="bg-gray-800 text-white px-8 py-5 rounded-2xl font-black text-xl hover:bg-black transition-all shadow-lg"
+             >
+               以后再说
+             </button>
+           </div>
+        ) : hasVoted || showResults ? (
+          /* 情景 B: 我已投，但还没齐4人 -> 显示等待状态 */
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-gray-400 font-bold animate-pulse">⏳ 等待其他玩家中... ({votesCount}/4)</span>
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowResults(!showResults)}
+                  className="bg-white border-4 border-indigo-100 text-indigo-600 px-8 py-4 rounded-2xl font-black hover:bg-indigo-50 transition-all shadow-lg"
+                >
+                  {showResults ? '返回选项' : '查看实时投票'}
+                </button>
+                <button 
+                  onClick={onBack}
+                  className="bg-gray-200 text-gray-500 px-8 py-4 rounded-2xl font-black hover:bg-gray-300 transition-all shadow-lg"
+                >
+                  返回建造
+                </button>
+             </div>
           </div>
         ) : (
+          /* 情景 C: 我还没投 -> 显示提交按钮 */
           <button 
             disabled={!selectedOption}
             onClick={() => selectedOption && onSubmitVote(selectedOption, reason)}
@@ -197,13 +222,13 @@ export const VotePage: React.FC<VotePageProps> = ({ state, onBack, onSubmitVote,
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 shadow-indigo-200' 
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
-            提交我的投票
+            提交投票
           </button>
         )}
         
         <div className="absolute bottom-6 right-10 text-[10px] font-bold text-gray-300 uppercase flex gap-4">
-           <span>已参与人数: {votesCount}</span>
-           <span>状态: {voteData.status}</span>
+           <span>票数: {votesCount}/4</span>
+           <span>状态: {isVoteCompleted ? '已结束' : '进行中'}</span>
         </div>
       </footer>
     </div>

@@ -1,22 +1,27 @@
-
-import React, { useState, useEffect } from 'react';
-import { GameState, Phase } from '../types';
+import React, { useState, useEffect, memo } from 'react';
+import { GameState } from '../types';
 
 interface TopPanelProps {
   state: GameState;
+  onHomeClick: () => void;
 }
 
-const StatItem: React.FC<{ icon: string, label: string, value: string | number, delta?: number, color: string, isWarning?: boolean }> = ({ icon, label, value, delta, color, isWarning }) => {
+// 优化：使用 memo 且只在 value 真正变化时才重新渲染
+// 同时动画逻辑改为更轻量的 CSS 处理
+const StatItem = memo(({ icon, label, value, delta, color, isWarning }: { icon: string, label: string, value: string | number, delta?: number, color: string, isWarning?: boolean }) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 500);
-    return () => clearTimeout(timer);
-  }, [value]);
+    // 只有当 delta 存在且不为0时，或者没有delta但value变化了，才做动画
+    if (delta !== 0 || delta === undefined) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [value, delta]);
 
   return (
-    <div className={`flex flex-col items-center bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border-b-4 transition-all 
+    <div className={`flex flex-col items-center bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border-b-4 transition-transform duration-300
       ${color} 
       ${isWarning ? 'animate-pulse border-red-500 bg-red-500/30' : ''} 
       ${isAnimating ? 'scale-110' : 'scale-100'}`}>
@@ -33,43 +38,37 @@ const StatItem: React.FC<{ icon: string, label: string, value: string | number, 
       </div>
     </div>
   );
-};
+});
 
-export const TopPanel: React.FC<TopPanelProps> = ({ state }) => {
-  const phaseNames = {
-    [Phase.BUILD]: '建造阶段',
-    [Phase.VOTE]: '投票阶段',
-    [Phase.DISCUSS]: '讨论阶段'
-  };
-
-  const minutes = Math.floor(state.timer / 60);
-  const seconds = state.timer % 60;
-
+export const TopPanel: React.FC<TopPanelProps> = ({ state, onHomeClick }) => {
   const isPowerLow = state.power > state.powerCapacity;
 
   return (
     <div className="w-full h-20 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 flex items-center justify-between px-6 shadow-lg z-50">
       <div className="flex items-center gap-4">
+        <button 
+          onClick={onHomeClick} 
+          className="mr-2 w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-xl text-white transition-all active:scale-95 shadow-sm border border-white/20"
+          title="返回首页"
+        >
+          <span className="text-xl">🏠</span>
+        </button>
         <StatItem icon="💰" label="金币" value={state.gold.toLocaleString()} delta={state.goldDelta} color="border-yellow-400" />
         <StatItem icon="👥" label="人口" value={`${state.population}/${state.maxPopulation}`} color="border-blue-400" />
         <StatItem 
           icon="⚡" 
-          label="电力" 
+          label="能量" 
           value={`${Math.round(state.power)}/${Math.round(state.powerCapacity)}`} 
           color={isPowerLow ? "border-red-500" : "border-yellow-200"} 
           isWarning={isPowerLow}
         />
         <StatItem icon="🌳" label="污染" value={`${state.pollution}%`} color={state.pollution > 50 ? "border-red-500" : "border-green-400"} />
-        <StatItem icon="😊" label="幸福度" value={`${state.happiness}%`} color="border-pink-300" />
       </div>
 
       <div className="flex flex-col items-end">
-        <div className="flex items-center gap-2 bg-black/30 px-4 py-1 rounded-full text-white">
-          <span className="animate-pulse text-yellow-300">●</span>
-          <span className="font-bold">{phaseNames[state.phase]}</span>
-          <span className="border-l border-white/30 pl-2 ml-2">倒计时 {minutes}:{seconds.toString().padStart(2, '0')}</span>
+        <div className="text-white font-bold bg-black/30 px-4 py-1 rounded-full">
+          第 {state.day} 天
         </div>
-        <div className="text-white/70 text-sm mt-1">游戏内第 {state.day} 天</div>
       </div>
     </div>
   );

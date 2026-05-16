@@ -1,5 +1,6 @@
 {
-  "name": "EcoCity: Collaborative Kids City Builder",
-  "description": "An educational multiplayer city-building game where kids play different roles like Urban Planner and Environmental Expert to build a sustainable future city through collaboration and strategy.",
-  "requestFramePermissions": []
+  "name": "Cocity 数字城市建设游戏",
+  "description": "一款面向儿童协作与社会情感学习（SEL）研究的数字城市建设游戏。支持三人协作，包含轮流检查点、协商卡片、投票门槛和微反思提示等机制。",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }

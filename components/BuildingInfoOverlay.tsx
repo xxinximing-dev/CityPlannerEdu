@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Building, MapCell } from '../types';
 import { BUILDINGS } from '../constants';
@@ -37,7 +36,7 @@ export const BuildingInfoOverlay: React.FC<BuildingInfoOverlayProps> = ({ cell, 
               💰 金币: {building.goldEffect}/天
             </div>
             <div className={`p-2 rounded-lg ${building.powerEffect >= 0 ? 'bg-yellow-50 text-yellow-700' : 'bg-blue-50 text-blue-700'}`}>
-              ⚡ 电力: {building.powerEffect}
+              ⚡ 能量: {building.powerEffect}
             </div>
             <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700">
               👥 人口: +{building.popEffect}
@@ -59,7 +58,7 @@ export const BuildingInfoOverlay: React.FC<BuildingInfoOverlayProps> = ({ cell, 
             onClick={onClose}
             className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-xl transition-colors"
           >
-            关闭
+            关闭详情
           </button>
         </div>
       </div>
